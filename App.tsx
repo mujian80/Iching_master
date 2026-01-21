@@ -281,13 +281,16 @@ const App: React.FC = () => {
         <div className="flex items-center justify-between w-full md:w-auto">
           <div className="flex items-center gap-2 md:gap-5">
              <span className="text-2xl md:text-5xl">☯</span>
-             <h1 className="text-lg md:text-3xl lg:text-5xl font-black text-gray-900 tracking-tighter">{t.title}</h1>
+             <h1 className="text-lg md:text-3xl lg:text-5xl font-black text-gray-900 tracking-tighter leading-none">{t.title}</h1>
           </div>
           <div className="flex items-center gap-2 lg:hidden">
-            <button onClick={toggleLang} className="px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-black text-[10px] uppercase border border-indigo-100">{lang === 'zh' ? 'EN' : '中文'}</button>
+            <button onClick={toggleLang} className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 font-black text-xs uppercase border border-indigo-100 active:scale-95 transition-all">{lang === 'zh' ? 'EN' : '中文'}</button>
             {currentUser ? (
-              <button onClick={handleLogout} className="text-red-500 text-[10px] font-black">退出</button>
-            ) : <button onClick={() => setShowAuth(true)} className="px-2 py-1 rounded-lg bg-gray-900 text-white font-black text-[10px]">登录</button>}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-gray-400">{currentUser.username}</span>
+                <button onClick={handleLogout} className="text-red-500 text-xs font-black p-1">退出</button>
+              </div>
+            ) : <button onClick={() => setShowAuth(true)} className="px-3 py-1.5 rounded-lg bg-gray-900 text-white font-black text-xs active:scale-95 transition-all">登录</button>}
           </div>
         </div>
         
@@ -347,7 +350,6 @@ const App: React.FC = () => {
             <div className="absolute top-4 right-4 z-40 flex flex-col gap-2">
               <button onClick={() => setZoom(z => Math.min(z + 0.1, 1.8))} className="w-10 h-10 md:w-14 md:h-14 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black cursor-pointer">＋</button>
               <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.4))} className="w-10 h-10 md:w-14 md:h-14 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black cursor-pointer">－</button>
-              <button onClick={() => setShowHistoryModal(true)} className="lg:hidden w-10 h-10 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black cursor-pointer">📜</button>
             </div>
           )}
 
@@ -379,13 +381,13 @@ const App: React.FC = () => {
                   })}
                 </div>
             ) : mode === 'Hexagram' ? <HexagramBoard view={viewMode} placedNames={placedHexagrams} isFinished={gameState.isFinished} onDrop={handleDrop} onSlotClick={handleSlotClick} onDragStartFromSlot={(e, id, type, item) => { setSourceSlot({targetId:id, type}); setActivePoolItem(item); e.dataTransfer.setData('item', JSON.stringify(item)); }} onHexClick={(hex) => setActiveModalHex(hex)} lang={lang} activeType={activePoolItem?.type} />
-            : <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            : <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-20 lg:pb-0">
                 {ICHING_IDIOMS.map((idiom, idx) => {
                   const hex = KING_WEN_HEXAGRAMS.find(h => h.id === idiom.hexId);
                   return (
                     <div key={idx} onDoubleClick={() => setActiveModalIdiom(idiom)} onClick={() => setActiveModalIdiom(idiom)} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-3 cursor-pointer hover:shadow-xl transition-all active:scale-95 group">
                       <div className="pointer-events-none opacity-30 group-hover:opacity-100"><HexagramIcon lines={hex?.lines || []} size={30} color="#6366f1" /></div>
-                      <span className="text-xl font-black text-gray-800 tracking-wider">{lang === 'zh' ? idiom.text : idiom.textEn}</span>
+                      <span className="text-xl font-black text-gray-800 tracking-wider text-center">{lang === 'zh' ? idiom.text : idiom.textEn}</span>
                       <span className="text-xs text-gray-400 font-bold">《{lang === 'zh' ? hex?.name : hex?.nameEn}》</span>
                     </div>
                   );
@@ -394,7 +396,7 @@ const App: React.FC = () => {
           </div>
 
           {(gameState.isFinished || selectedInfo) && (
-            <div className="mt-8 mb-12 bg-white rounded-3xl p-6 md:p-12 shadow-2xl border border-gray-100 max-w-4xl w-full animate-in slide-in-from-bottom-4">
+            <div className="mt-8 mb-24 lg:mb-12 bg-white rounded-3xl p-6 md:p-12 shadow-2xl border border-gray-100 max-w-4xl w-full animate-in slide-in-from-bottom-4">
               <h3 className="text-xl md:text-3xl font-black text-gray-900 mb-4">{selectedInfo ? t.wisdom : `${t.score}: ${gameState.score}`}</h3>
               <div className="text-gray-800 italic leading-relaxed whitespace-pre-line bg-[#fdfcf7] p-6 rounded-2xl text-base md:text-xl border border-gray-100">
                 {selectedInfo || gameState.feedback}
@@ -483,10 +485,18 @@ const App: React.FC = () => {
               </div>
             ))}
           </div>
-          <div className="flex gap-3 mt-2 px-1">
-            <button onClick={checkResults} disabled={gameState.isFinished || isLoading} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black text-lg shadow-lg active:scale-95 disabled:opacity-30 cursor-pointer">{t.submit}</button>
-            <button onClick={autoComplete} className="px-6 py-4 bg-indigo-50 text-indigo-700 rounded-2xl text-lg font-black cursor-pointer">{t.auto}</button>
-            <button onClick={initGame} className="px-5 py-4 bg-gray-50 text-gray-600 rounded-2xl text-lg font-black cursor-pointer">🔄</button>
+          <div className="flex gap-2 mt-2 px-1">
+            <button onClick={checkResults} disabled={gameState.isFinished || isLoading} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black text-sm shadow-lg active:scale-95 disabled:opacity-30 cursor-pointer">{t.submit}</button>
+            <button onClick={autoComplete} className="px-4 py-4 bg-indigo-50 text-indigo-700 rounded-2xl text-sm font-black cursor-pointer">{t.auto}</button>
+            <button onClick={() => setShowHistoryModal(true)} className="px-3 py-4 bg-white border border-gray-200 rounded-2xl font-black text-sm cursor-pointer flex flex-col items-center justify-center">
+              <span>📜</span>
+              <span className="text-[10px] mt-0.5">{t.history}</span>
+            </button>
+            <button onClick={downloadRecords} className="px-3 py-4 bg-white border border-gray-200 rounded-2xl font-black text-sm cursor-pointer flex flex-col items-center justify-center">
+              <span>📥</span>
+              <span className="text-[10px] mt-0.5">{t.download}</span>
+            </button>
+            <button onClick={initGame} className="px-3 py-4 bg-gray-50 text-gray-600 rounded-2xl text-lg font-black cursor-pointer">🔄</button>
           </div>
         </div>
       )}
@@ -494,7 +504,7 @@ const App: React.FC = () => {
       {/* History Modal for Mobile */}
       {showHistoryModal && (
         <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setShowHistoryModal(false)}>
-          <div className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full max-h-[80vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b flex justify-between items-center bg-gray-50">
               <h3 className="text-xl font-black text-gray-800">{t.records}</h3>
               <div className="flex gap-2">
