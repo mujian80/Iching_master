@@ -13,6 +13,7 @@ interface BaguaCircleProps {
   onDragStartFromSlot: (e: React.DragEvent, trigramId: string, type: string, item: PuzzleItem) => void;
   onTrigramClick: (name: string) => void;
   lang: Language;
+  activeType?: string;
 }
 
 export const BaguaCircle: React.FC<BaguaCircleProps> = ({ 
@@ -23,14 +24,15 @@ export const BaguaCircle: React.FC<BaguaCircleProps> = ({
   onDrop,
   onDragStartFromSlot,
   onTrigramClick,
-  lang
+  lang,
+  activeType
 }) => {
   const posMap = type === 'early' ? EARLY_HEAVEN_POS : LATER_HEAVEN_POS;
   const tStrings = TRANSLATIONS[lang];
 
   return (
     <div className="relative w-[85vmin] h-[85vmin] max-w-[700px] max-h-[700px] bg-white rounded-full border-[8px] md:border-[16px] border-gray-50 shadow-2xl flex items-center justify-center p-4 md:p-8">
-      <div className="absolute w-[24%] h-[24%] rounded-full shadow-2xl z-20 bg-white border-2 md:border-4 border-gray-900 transition-transform duration-1000 hover:rotate-180 cursor-pointer">
+      <div className="absolute w-[24%] h-[24%] rounded-full shadow-2xl z-20 bg-white border-2 md:border-4 border-gray-900 transition-transform duration-1000 hover:rotate-180 cursor-default">
          <svg viewBox="0 0 100 100" className="w-full h-full scale-105">
             <circle cx="50" cy="50" r="50" fill="white" />
             <path d="M 50,0 A 50,50 0 0 1 50,100 A 25,25 0 0 1 50,50 A 25,25 0 0 0 50,0" fill="black" />
@@ -57,24 +59,33 @@ export const BaguaCircle: React.FC<BaguaCircleProps> = ({
             <div 
               draggable={!!p.symbol && !isFinished}
               onDragStart={(e) => p.symbol && onDragStartFromSlot(e, trig.id, 'symbol', p.symbol)}
-              onClick={() => p.symbol ? onTrigramClick(trigName) : onSlotClick(trig.id, 'symbol')}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (activeType === 'symbol' || !p.symbol) {
+                  onSlotClick(trig.id, 'symbol');
+                } else {
+                  onTrigramClick(trigName);
+                }
+              }}
               onDrop={(e) => onDrop(e, trig.id, 'symbol')}
               onDragOver={(e) => e.preventDefault()}
-              className={`cursor-pointer w-full aspect-square flex items-center justify-center rounded-xl md:rounded-3xl border-2 md:border-4 transition-all shadow-md ${p.symbol ? 'border-indigo-100 bg-white scale-110' : 'border-dashed border-indigo-200 bg-indigo-50/20 hover:bg-indigo-50/40 animate-pulse'}`}
+              className={`cursor-pointer w-full aspect-square flex items-center justify-center rounded-xl md:rounded-3xl border-2 md:border-4 transition-all shadow-md ${p.symbol ? 'border-indigo-100 bg-white scale-110' : 'border-dashed border-indigo-200 bg-indigo-50/20'} ${activeType === 'symbol' ? 'ring-4 ring-indigo-400 border-indigo-400 bg-indigo-100/30 animate-pulse' : ''}`}
             >
-              {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={window.innerWidth < 768 ? 40 : 64} color="#1f2937" /> : <span className="text-[10px] md:text-sm font-black text-indigo-400">{tStrings.symbol}</span>}
+              <div className="pointer-events-none">
+                {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={window.innerWidth < 768 ? 40 : 64} color="#1f2937" /> : <span className="text-[10px] md:text-sm font-black text-indigo-400">{tStrings.symbol}</span>}
+              </div>
             </div>
 
             <div className="w-full space-y-1 md:space-y-2">
               {['name', 'nature', 'solarTerm'].map(type => (
                 <div 
                   key={type}
-                  onClick={() => onSlotClick(trig.id, type)}
+                  onClick={(e) => { e.stopPropagation(); onSlotClick(trig.id, type); }}
                   onDrop={(e) => onDrop(e, trig.id, type)}
                   onDragOver={(e) => e.preventDefault()}
-                  className={`h-5 md:h-11 border rounded-lg md:rounded-2xl flex items-center justify-center text-[8px] md:text-base font-black transition-all ${p[type] ? 'bg-indigo-50 text-indigo-900 border-indigo-200' : 'border-dashed border-gray-100 text-gray-300'}`}
+                  className={`h-6 md:h-11 border rounded-lg md:rounded-2xl flex items-center justify-center text-[8px] md:text-base font-black transition-all cursor-pointer ${p[type] ? 'bg-indigo-50 text-indigo-900 border-indigo-200 shadow-sm' : 'border-dashed border-gray-100 text-gray-300'} ${activeType === type ? 'ring-4 ring-indigo-400 border-indigo-400 bg-indigo-50 animate-pulse' : ''}`}
                 >
-                  {p[type]?.content || tStrings[type]}
+                  <span className="pointer-events-none">{p[type]?.content || tStrings[type]}</span>
                 </div>
               ))}
             </div>

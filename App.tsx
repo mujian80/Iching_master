@@ -103,6 +103,7 @@ const App: React.FC = () => {
     records.forEach((r, idx) => {
       content += `--------------------------------------------------\n`;
       content += `${lang === 'zh' ? '记录' : 'Record'} #${idx + 1}\n`;
+      content += `${lang === 'zh' ? '记录' : 'Record'} #${idx + 1}\n`;
       content += `${lang === 'zh' ? '模式' : 'Mode'}: ${r.mode}\n`;
       content += `${lang === 'zh' ? '时间' : 'Time'}: ${r.timestamp}\n`;
       content += `${lang === 'zh' ? '评分' : 'Score'}: ${r.score}\n`;
@@ -223,9 +224,6 @@ const App: React.FC = () => {
     if (gameState.isFinished) return;
     const isCorrectType = item.type === type || (item.type === 'hexName' && type === 'hexName');
     if (!isCorrectType) {
-      // If user taps an invalid slot while holding an item, just deselect
-      setActivePoolItem(null);
-      setSourceSlot(null);
       return;
     }
 
@@ -278,14 +276,7 @@ const App: React.FC = () => {
   const handleLogout = () => { setCurrentUser(null); localStorage.removeItem('iching_user'); setLang('zh'); };
 
   return (
-    <div className="h-screen flex flex-col bg-[#fcfaf2] overflow-hidden" onClick={(e) => {
-      // Deselect item when clicking background
-      if (e.target === e.currentTarget) {
-        setActivePoolItem(null);
-        setSourceSlot(null);
-      }
-    }}>
-      {/* Optimized Header for Mobile */}
+    <div className="h-screen flex flex-col bg-[#fcfaf2] overflow-hidden">
       <header className="shrink-0 w-full bg-white/90 backdrop-blur-xl border-b border-gray-200 px-4 py-3 md:px-12 md:py-6 flex flex-col gap-3 md:flex-row items-center justify-between shadow-sm z-50">
         <div className="flex items-center gap-3 md:gap-5 self-start md:self-auto">
            <span className="text-3xl md:text-5xl">☯</span>
@@ -297,7 +288,7 @@ const App: React.FC = () => {
              {(['Bagua', 'Hexagram', 'Idiom'] as const).map(m => (
                <button 
                  key={m} 
-                 onClick={() => setMode(m)} 
+                 onClick={() => { setMode(m); setActivePoolItem(null); setSourceSlot(null); }} 
                  className={`px-3 md:px-8 py-1.5 md:py-2.5 rounded-full text-sm md:text-xl font-black transition-all ${mode === m ? 'bg-gray-800 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600'}`}
                >
                  {t[m.toLowerCase()]}
@@ -337,18 +328,17 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-        <main className="flex-1 overflow-auto flex flex-col items-center p-4 md:p-8" onClick={(e) => {
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative" onClick={(e) => {
           if (e.target === e.currentTarget) {
             setActivePoolItem(null);
             setSourceSlot(null);
           }
         }}>
+        <main className="flex-1 overflow-auto flex flex-col items-center p-4 md:p-8">
           {mode !== 'Idiom' && (
             <div className="absolute top-4 right-4 z-40 flex flex-col gap-2">
-              <button onClick={() => setZoom(z => Math.min(z + 0.1, 1.8))} className="w-10 h-10 md:w-14 md:h-14 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black">＋</button>
-              <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.4))} className="w-10 h-10 md:w-14 md:h-14 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black">－</button>
+              <button onClick={() => setZoom(z => Math.min(z + 0.1, 1.8))} className="w-10 h-10 md:w-14 md:h-14 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black cursor-pointer">＋</button>
+              <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.4))} className="w-10 h-10 md:w-14 md:h-14 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black cursor-pointer">－</button>
             </div>
           )}
 
@@ -357,19 +347,21 @@ const App: React.FC = () => {
             style={{ transform: mode !== 'Idiom' ? `scale(${zoom})` : 'none' }}
           >
             {mode === 'Bagua' ? (
-              viewMode === 'circle' ? <BaguaCircle type={baguaType} placedItems={placedTrigrams} isFinished={gameState.isFinished} onDrop={handleDrop} onSlotClick={handleSlotClick} onDragStartFromSlot={(e, id, type, item) => { setSourceSlot({targetId:id, type}); setActivePoolItem(item); e.dataTransfer.setData('item', JSON.stringify(item)); }} onTrigramClick={(n) => getTrigramWisdom(n, lang).then(setSelectedInfo)} lang={lang} />
+              viewMode === 'circle' ? <BaguaCircle type={baguaType} placedItems={placedTrigrams} isFinished={gameState.isFinished} onDrop={handleDrop} onSlotClick={handleSlotClick} onDragStartFromSlot={(e, id, type, item) => { setSourceSlot({targetId:id, type}); setActivePoolItem(item); e.dataTransfer.setData('item', JSON.stringify(item)); }} onTrigramClick={(n) => getTrigramWisdom(n, lang).then(setSelectedInfo)} lang={lang} activeType={activePoolItem?.type} />
               : <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-10 w-full max-w-5xl">
                   {TRIGRAMS.map(trig => {
                     const p = placedTrigrams[trig.id];
                     return (
                       <div key={trig.id} className="bg-white rounded-2xl p-4 md:p-8 shadow-xl border-2 border-transparent hover:border-indigo-100 transition-all">
-                         <div onDrop={(e) => handleDrop(e, trig.id, 'symbol')} onDragOver={(e)=>e.preventDefault()} onClick={() => handleSlotClick(trig.id, 'symbol')} className="h-20 md:h-32 flex items-center justify-center border-dashed border-2 md:border-4 rounded-xl md:rounded-3xl mb-4 md:mb-6 bg-indigo-50/10">
-                           {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={60} /> : <span className="text-indigo-400 text-sm md:text-lg font-black">{t.symbol}</span>}
+                         <div onDrop={(e) => handleDrop(e, trig.id, 'symbol')} onDragOver={(e)=>e.preventDefault()} onClick={() => handleSlotClick(trig.id, 'symbol')} className={`h-20 md:h-32 flex items-center justify-center border-dashed border-2 md:border-4 rounded-xl md:rounded-3xl mb-4 md:mb-6 bg-indigo-50/10 transition-colors cursor-pointer ${activePoolItem?.type === 'symbol' ? 'bg-indigo-100/50 border-indigo-400 ring-4 ring-indigo-200' : ''}`}>
+                           <div className="pointer-events-none">
+                             {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={60} /> : <span className="text-indigo-400 text-sm md:text-lg font-black">{t.symbol}</span>}
+                           </div>
                          </div>
                          <div className="space-y-2 md:space-y-4">
                            {['name', 'nature', 'solarTerm'].map(type => (
-                             <div key={type} onClick={() => handleSlotClick(trig.id, type)} onDrop={(e) => handleDrop(e, trig.id, type)} onDragOver={(e)=>e.preventDefault()} className={`h-10 md:h-16 border-2 rounded-xl flex items-center justify-center text-sm md:text-lg font-black transition-all ${p[type] ? (type === 'name' ? 'bg-red-50 text-red-900 border-red-200' : type === 'nature' ? 'bg-blue-50 text-blue-900 border-blue-200' : 'bg-green-50 text-green-900 border-green-200') : 'border-dashed border-gray-200 text-gray-400'}`}>
-                               {p[type]?.content || t[type]}
+                             <div key={type} onClick={() => handleSlotClick(trig.id, type)} onDrop={(e) => handleDrop(e, trig.id, type)} onDragOver={(e)=>e.preventDefault()} className={`h-10 md:h-16 border-2 rounded-xl flex items-center justify-center text-sm md:text-lg font-black transition-all cursor-pointer ${p[type] ? (type === 'name' ? 'bg-red-50 text-red-900 border-red-200' : type === 'nature' ? 'bg-blue-50 text-blue-900 border-blue-200' : 'bg-green-50 text-green-900 border-green-200') : 'border-dashed border-gray-200 text-gray-400'} ${activePoolItem?.type === type ? 'bg-indigo-50 border-indigo-400 ring-4 ring-indigo-200' : ''}`}>
+                               <span className="pointer-events-none">{p[type]?.content || t[type]}</span>
                              </div>
                            ))}
                          </div>
@@ -377,12 +369,12 @@ const App: React.FC = () => {
                     );
                   })}
                 </div>
-            ) : mode === 'Hexagram' ? <HexagramBoard view={viewMode} placedNames={placedHexagrams} isFinished={gameState.isFinished} onDrop={handleDrop} onSlotClick={handleSlotClick} onDragStartFromSlot={(e, id, type, item) => { setSourceSlot({targetId:id, type}); setActivePoolItem(item); e.dataTransfer.setData('item', JSON.stringify(item)); }} onHexClick={(hex) => setActiveModalHex(hex)} lang={lang} />
+            ) : mode === 'Hexagram' ? <HexagramBoard view={viewMode} placedNames={placedHexagrams} isFinished={gameState.isFinished} onDrop={handleDrop} onSlotClick={handleSlotClick} onDragStartFromSlot={(e, id, type, item) => { setSourceSlot({targetId:id, type}); setActivePoolItem(item); e.dataTransfer.setData('item', JSON.stringify(item)); }} onHexClick={(hex) => setActiveModalHex(hex)} lang={lang} activeType={activePoolItem?.type} />
             : <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {ICHING_IDIOMS.map((idiom, idx) => {
                   const hex = KING_WEN_HEXAGRAMS.find(h => h.id === idiom.hexId);
                   return (
-                    <div key={idx} onDoubleClick={() => setActiveModalIdiom(idiom)} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-3 cursor-pointer hover:shadow-xl transition-all active:scale-95 group">
+                    <div key={idx} onDoubleClick={() => setActiveModalIdiom(idiom)} onClick={() => setActiveModalIdiom(idiom)} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-3 cursor-pointer hover:shadow-xl transition-all active:scale-95 group">
                       <div className="pointer-events-none opacity-30 group-hover:opacity-100"><HexagramIcon lines={hex?.lines || []} size={30} color="#6366f1" /></div>
                       <span className="text-xl font-black text-gray-800 tracking-wider">{lang === 'zh' ? idiom.text : idiom.textEn}</span>
                       <span className="text-xs text-gray-400 font-bold">《{lang === 'zh' ? hex?.name : hex?.nameEn}》</span>
@@ -392,19 +384,17 @@ const App: React.FC = () => {
               </div>}
           </div>
 
-          {/* AI Result Card */}
           {(gameState.isFinished || selectedInfo) && (
-            <div className="mt-8 mb-12 bg-white rounded-3xl p-6 md:p-12 shadow-2xl border border-gray-100 max-w-4xl w-full">
+            <div className="mt-8 mb-12 bg-white rounded-3xl p-6 md:p-12 shadow-2xl border border-gray-100 max-w-4xl w-full animate-in slide-in-from-bottom-4">
               <h3 className="text-xl md:text-3xl font-black text-gray-900 mb-4">{selectedInfo ? t.wisdom : `${t.score}: ${gameState.score}`}</h3>
               <div className="text-gray-800 italic leading-relaxed whitespace-pre-line bg-[#fdfcf7] p-6 rounded-2xl text-base md:text-xl border border-gray-100">
                 {selectedInfo || gameState.feedback}
               </div>
-              <button onClick={() => { setSelectedInfo(null); setGameState(p => ({...p, isFinished: false})) }} className="mt-6 px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg active:scale-95 transition-all w-full md:w-auto">{t.realize}</button>
+              <button onClick={() => { setSelectedInfo(null); setGameState(p => ({...p, isFinished: false})) }} className="mt-6 px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg active:scale-95 transition-all w-full md:w-auto cursor-pointer">{t.realize}</button>
             </div>
           )}
         </main>
 
-        {/* Desktop Sidebar */}
         <aside className="hidden lg:flex w-96 shrink-0 flex-col gap-6 p-6 border-l bg-white/50 overflow-auto">
           {mode !== 'Idiom' && (
             <section className="bg-white p-6 rounded-3xl border shadow-lg flex flex-col gap-6">
@@ -420,7 +410,7 @@ const App: React.FC = () => {
                           draggable 
                           onDragStart={(e) => { setActivePoolItem(item); e.dataTransfer.setData('item', JSON.stringify(item)); }} 
                           onClick={() => setActivePoolItem(activePoolItem?.id === item.id ? null : item)} 
-                          className={`px-3 py-1.5 rounded-xl text-sm font-black border-2 cursor-grab select-none transition-all ${activePoolItem?.id === item.id ? 'bg-indigo-600 text-white shadow-md scale-105' : 'bg-white border-gray-100'} ${item.type === 'name' ? 'bg-red-50 text-red-900' : item.type === 'nature' ? 'bg-blue-50 text-blue-900' : 'bg-green-50 text-green-900'}`}
+                          className={`px-3 py-1.5 rounded-xl text-sm font-black border-2 cursor-grab select-none transition-all ${activePoolItem?.id === item.id ? 'bg-indigo-600 text-white shadow-md scale-105 cursor-grabbing' : 'bg-white border-gray-100 hover:border-indigo-400'} ${item.type === 'name' ? 'bg-red-50 text-red-900' : item.type === 'nature' ? 'bg-blue-50 text-blue-900' : 'bg-green-50 text-green-900'}`}
                         >
                           {item.type === 'symbol' ? <div className="pointer-events-none scale-75"><TrigramIcon lines={TRIGRAMS.find(trig => trig.id === item.content)?.lines || []} size={30} color={activePoolItem?.id === item.id ? 'white' : 'currentColor'} /></div> : item.content}
                         </div>
@@ -430,10 +420,10 @@ const App: React.FC = () => {
                 ))}
               </div>
               <div className="pt-4 border-t space-y-3">
-                <button onClick={checkResults} disabled={gameState.isFinished || isLoading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-lg shadow-lg active:scale-95 disabled:opacity-30">{t.submit}</button>
+                <button onClick={checkResults} disabled={gameState.isFinished || isLoading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-lg shadow-lg active:scale-95 disabled:opacity-30 cursor-pointer">{t.submit}</button>
                 <div className="grid grid-cols-2 gap-3">
-                  <button onClick={autoComplete} className="py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-black">{t.auto}</button>
-                  <button onClick={initGame} className="py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-black">{t.reset}</button>
+                  <button onClick={autoComplete} className="py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-black cursor-pointer">{t.auto}</button>
+                  <button onClick={initGame} className="py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-black cursor-pointer">{t.reset}</button>
                 </div>
               </div>
             </section>
@@ -443,8 +433,8 @@ const App: React.FC = () => {
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-black text-gray-800">{t.records}</h3>
               <div className="flex gap-2">
-                <button onClick={downloadRecords} className="p-2 hover:bg-gray-100 rounded-lg">📥</button>
-                <button onClick={clearRecords} className="p-2 hover:bg-red-50 text-red-500 rounded-lg">🗑️</button>
+                <button onClick={downloadRecords} className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer">📥</button>
+                <button onClick={clearRecords} className="p-2 hover:bg-red-50 text-red-500 rounded-lg cursor-pointer">🗑️</button>
               </div>
             </div>
             <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
@@ -460,16 +450,17 @@ const App: React.FC = () => {
         </aside>
       </div>
 
-      {/* Mobile Element Pool Bottom Dock */}
       {mode !== 'Idiom' && (
         <div className="lg:hidden shrink-0 w-full bg-white/95 backdrop-blur-xl border-t border-gray-200 p-3 shadow-[0_-8px_30px_rgba(0,0,0,0.1)] z-40">
           {activePoolItem && (
-            <div className="px-4 py-1.5 mb-2 bg-indigo-50 border border-indigo-200 rounded-xl flex justify-between items-center animate-in fade-in slide-in-from-bottom-2">
-              <span className="text-xs font-bold text-indigo-700">正在放置: {activePoolItem.content}</span>
-              <button onClick={() => setActivePoolItem(null)} className="text-indigo-400 text-xs font-black px-2">取消</button>
+            <div className="px-4 py-3 mb-2 bg-indigo-600 text-white rounded-xl flex justify-between items-center shadow-lg animate-in fade-in slide-in-from-bottom-2">
+              <span className="text-sm font-black flex items-center gap-2">
+                <span className="text-xl">👆</span> 选中: {activePoolItem.content} (点击卦位放置)
+              </span>
+              <button onClick={(e) => { e.stopPropagation(); setActivePoolItem(null); setSourceSlot(null); }} className="bg-white/20 px-3 py-1 rounded-lg text-xs font-black cursor-pointer">取消</button>
             </div>
           )}
-          <div className="flex overflow-x-auto gap-2 no-scrollbar pb-2">
+          <div className="flex overflow-x-auto gap-3 no-scrollbar pb-2 px-1">
             {shuffledPool.map(item => (
               <div 
                 key={item.id} 
@@ -477,16 +468,16 @@ const App: React.FC = () => {
                   e.stopPropagation();
                   setActivePoolItem(activePoolItem?.id === item.id ? null : item);
                 }}
-                className={`shrink-0 px-4 py-2.5 rounded-xl text-base font-black border-2 transition-all active:scale-90 ${activePoolItem?.id === item.id ? 'bg-indigo-600 text-white border-indigo-600 ring-4 ring-indigo-200 shadow-xl' : 'bg-white border-gray-100'} ${item.type === 'name' ? 'bg-red-50 text-red-900' : item.type === 'nature' ? 'bg-blue-50 text-blue-900' : 'bg-green-50 text-green-900'}`}
+                className={`shrink-0 px-5 py-3 rounded-2xl text-lg font-black border-2 transition-all active:scale-95 shadow-sm cursor-grab ${activePoolItem?.id === item.id ? 'bg-indigo-600 text-white border-indigo-600 scale-105 shadow-indigo-200 shadow-xl cursor-grabbing' : 'bg-white border-gray-100'} ${item.type === 'name' ? 'bg-red-50 text-red-900' : item.type === 'nature' ? 'bg-blue-50 text-blue-900' : 'bg-green-50 text-green-900'}`}
               >
-                {item.type === 'symbol' ? <div className="pointer-events-none scale-75"><TrigramIcon lines={TRIGRAMS.find(trig => trig.id === item.content)?.lines || []} size={28} color={activePoolItem?.id === item.id ? 'white' : 'currentColor'} /></div> : item.content}
+                {item.type === 'symbol' ? <div className="pointer-events-none scale-90"><TrigramIcon lines={TRIGRAMS.find(trig => trig.id === item.content)?.lines || []} size={32} color={activePoolItem?.id === item.id ? 'white' : 'currentColor'} /></div> : item.content}
               </div>
             ))}
           </div>
-          <div className="flex gap-2 mt-2">
-            <button onClick={checkResults} disabled={gameState.isFinished || isLoading} className="flex-1 py-3.5 bg-gray-900 text-white rounded-xl font-black text-base shadow-md active:scale-95 disabled:opacity-30">{t.submit}</button>
-            <button onClick={autoComplete} className="px-5 py-3.5 bg-indigo-50 text-indigo-700 rounded-xl text-base font-black">{t.auto}</button>
-            <button onClick={initGame} className="px-5 py-3.5 bg-gray-50 text-gray-600 rounded-xl text-base font-black">🔄</button>
+          <div className="flex gap-3 mt-2 px-1">
+            <button onClick={checkResults} disabled={gameState.isFinished || isLoading} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black text-lg shadow-lg active:scale-95 disabled:opacity-30 cursor-pointer">{t.submit}</button>
+            <button onClick={autoComplete} className="px-6 py-4 bg-indigo-50 text-indigo-700 rounded-2xl text-lg font-black cursor-pointer">{t.auto}</button>
+            <button onClick={initGame} className="px-5 py-4 bg-gray-50 text-gray-600 rounded-2xl text-lg font-black cursor-pointer">🔄</button>
           </div>
         </div>
       )}
