@@ -30,7 +30,7 @@ export const BaguaCircle: React.FC<BaguaCircleProps> = ({
   const solarTermsList = lang === 'zh' ? POSITIONAL_SOLAR_TERMS : POSITIONAL_SOLAR_TERMS_EN;
 
   return (
-    <div className="relative w-[85vmin] h-[85vmin] max-w-[600px] max-h-[600px] bg-white rounded-full border-4 border-gray-100 shadow-[inset_0_4px_20px_rgba(0,0,0,0.05)] flex items-center justify-center p-4">
+    <div className="relative w-[90vmin] h-[90vmin] max-w-[650px] max-h-[650px] bg-white rounded-full border-4 border-gray-100 shadow-[inset_0_4px_30px_rgba(0,0,0,0.05)] flex items-center justify-center p-4">
       <div className="absolute w-[22%] h-[22%] rounded-full shadow-2xl z-10 overflow-hidden bg-white border-2 border-gray-800 transition-transform duration-1000 hover:rotate-180">
          <svg viewBox="0 0 100 100" className="w-full h-full scale-105">
             <circle cx="50" cy="50" r="50" fill="white" />
@@ -42,21 +42,19 @@ export const BaguaCircle: React.FC<BaguaCircleProps> = ({
 
       {TRIGRAMS.map((trig) => {
         const posIndex = posMap[trig.id];
-        const correctSolarTerm = solarTermsList[posIndex];
         const angle = (posIndex * 45) - 90; 
-        const radius = 37; 
+        const radius = 38; 
         const left = 50 + radius * Math.cos((angle * Math.PI) / 180);
         const top = 50 + radius * Math.sin((angle * Math.PI) / 180);
 
         const p = placedItems[trig.id] || {};
         const trigName = lang === 'zh' ? trig.name : trig.nameEn;
-        const trigNature = lang === 'zh' ? trig.nature : trig.natureEn;
 
         return (
           <div 
             key={trig.id}
             style={{ left: `${left}%`, top: `${top}%`, transform: `translate(-50%, -50%) rotate(${angle + 90}deg)` }}
-            className="absolute w-[18%] max-w-[110px] flex flex-col items-center gap-1.5"
+            className="absolute w-[18%] max-w-[130px] flex flex-col items-center gap-2"
           >
             <div 
               draggable={!!p.symbol && !isFinished}
@@ -64,19 +62,19 @@ export const BaguaCircle: React.FC<BaguaCircleProps> = ({
               onClick={() => p.symbol ? onTrigramClick(trigName) : onSlotClick(trig.id, 'symbol')}
               onDrop={(e) => onDrop(e, trig.id, 'symbol')}
               onDragOver={(e) => e.preventDefault()}
-              className={`cursor-pointer w-full aspect-[4/3] flex items-center justify-center rounded-xl border-2 transition-all ${p.symbol ? 'border-transparent' : 'border-dashed border-indigo-200 bg-indigo-50/20'}`}
+              className={`cursor-pointer w-full aspect-[4/3] flex items-center justify-center rounded-2xl border-2 transition-all shadow-sm ${p.symbol ? 'border-transparent bg-white' : 'border-dashed border-indigo-200 bg-indigo-50/20 hover:bg-indigo-50/40'}`}
             >
-              {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={36} color="#1f2937" /> : <span className="text-[10px] font-black text-indigo-400">{tStrings.symbol}</span>}
+              {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={42} color="#1f2937" /> : <span className="text-xs font-black text-indigo-400">{tStrings.symbol}</span>}
             </div>
 
-            <div className="w-full space-y-1">
+            <div className="w-full space-y-1.5">
               {['name', 'nature', 'solarTerm'].map(type => (
                 <div 
                   key={type}
                   onClick={() => onSlotClick(trig.id, type)}
                   onDrop={(e) => onDrop(e, trig.id, type)}
                   onDragOver={(e) => e.preventDefault()}
-                  className={`h-[4.5vmin] max-h-[26px] border rounded-lg flex items-center justify-center text-[7px] md:text-[9px] font-black transition-all ${p[type] ? 'bg-indigo-50 text-indigo-900 border-indigo-100' : 'border-dashed border-gray-200 text-gray-400'}`}
+                  className={`h-[4.5vmin] max-h-[34px] border-2 rounded-xl flex items-center justify-center text-[10px] md:text-xs font-black transition-all ${p[type] ? 'bg-indigo-50 text-indigo-900 border-indigo-200 shadow-sm' : 'border-dashed border-gray-100 text-gray-300 hover:bg-gray-50'}`}
                 >
                   {p[type]?.content || tStrings[type]}
                 </div>

@@ -70,7 +70,8 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem(`iching_records_${currentUser?.username || 'guest'}`);
+    const username = currentUser?.username || 'guest';
+    const saved = localStorage.getItem(`iching_records_${username}`);
     if (saved) {
       try { setRecords(JSON.parse(saved) as GameRecord[]); } catch (e) { console.error(e); }
     } else {
@@ -79,17 +80,19 @@ const App: React.FC = () => {
   }, [currentUser]);
 
   const saveRecord = useCallback((record: GameRecord) => {
+    const username = currentUser?.username || 'guest';
     setRecords(prev => {
       const updated = [record, ...prev].slice(0, 30);
-      localStorage.setItem(`iching_records_${currentUser?.username || 'guest'}`, JSON.stringify(updated));
+      localStorage.setItem(`iching_records_${username}`, JSON.stringify(updated));
       return updated;
     });
   }, [currentUser]);
 
   const clearRecords = useCallback(() => {
     if (window.confirm(lang === 'zh' ? '确定要清空所有演算记录吗？' : 'Are you sure to clear all records?')) {
+      const username = currentUser?.username || 'guest';
       setRecords([]);
-      localStorage.removeItem(`iching_records_${currentUser?.username || 'guest'}`);
+      localStorage.removeItem(`iching_records_${username}`);
     }
   }, [lang, currentUser]);
 
@@ -355,16 +358,16 @@ const App: React.FC = () => {
 
         <div className="flex flex-wrap items-center justify-center gap-4">
           <div className="flex items-center gap-3 mr-4">
-            <button onClick={toggleLang} className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-sm border border-indigo-100 hover:bg-indigo-100 transition-colors uppercase">
+            <button onClick={toggleLang} className="px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-sm border border-indigo-100 hover:bg-indigo-100 transition-colors uppercase">
               {lang === 'zh' ? 'EN' : '中文'}
             </button>
             {currentUser ? (
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-gray-500">{t.welcome}, {currentUser.username}</span>
-                <button onClick={handleLogout} className="text-xs font-bold text-red-500 hover:text-red-700">{t.logout}</button>
+                <span className="text-sm font-bold text-gray-500">{t.welcome}, {currentUser.username}</span>
+                <button onClick={handleLogout} className="text-sm font-bold text-red-500 hover:text-red-700">{t.logout}</button>
               </div>
             ) : (
-              <button onClick={() => setShowAuth(true)} className="px-4 py-1.5 rounded-lg bg-gray-900 text-white font-bold text-sm hover:bg-black transition-colors">
+              <button onClick={() => setShowAuth(true)} className="px-5 py-2 rounded-lg bg-gray-900 text-white font-bold text-sm hover:bg-black transition-colors">
                 {t.login} / {t.signup}
               </button>
             )}
@@ -372,7 +375,7 @@ const App: React.FC = () => {
 
           <div className="flex bg-gray-100 p-2 rounded-full border border-gray-200">
              {(['Bagua', 'Hexagram', 'Idiom'] as const).map(m => (
-               <button key={m} onClick={() => setMode(m)} className={`px-4 md:px-8 py-2.5 rounded-full text-base md:text-xl font-black transition-all ${mode === m ? 'bg-gray-800 text-white shadow-xl scale-105' : 'text-gray-400'}`}>
+               <button key={m} onClick={() => setMode(m)} className={`px-5 md:px-8 py-2.5 rounded-full text-lg md:text-xl font-black transition-all ${mode === m ? 'bg-gray-800 text-white shadow-xl scale-105' : 'text-gray-400 hover:text-gray-600'}`}>
                  {t[m.toLowerCase()]}
                </button>
              ))}
@@ -382,35 +385,33 @@ const App: React.FC = () => {
           
           {mode !== 'Idiom' && (
             <div className="flex flex-wrap gap-4">
-              {/* Bagua Layout Selection: Early, Later, Square Map */}
               {mode === 'Bagua' && (
                 <div className="flex bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
                   <button 
                     onClick={() => { setBaguaType('early'); setViewMode('circle'); }} 
-                    className={`px-5 py-2 rounded-xl text-sm md:text-lg font-black transition-all ${viewMode === 'circle' && baguaType === 'early' ? 'bg-indigo-900 text-white shadow-md' : 'text-gray-500'}`}
+                    className={`px-5 py-2 rounded-xl text-sm md:text-lg font-black transition-all ${viewMode === 'circle' && baguaType === 'early' ? 'bg-indigo-900 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
                   >
                     {t.early}
                   </button>
                   <button 
                     onClick={() => { setBaguaType('later'); setViewMode('circle'); }} 
-                    className={`px-5 py-2 rounded-xl text-sm md:text-lg font-black transition-all ${viewMode === 'circle' && baguaType === 'later' ? 'bg-indigo-900 text-white shadow-md' : 'text-gray-500'}`}
+                    className={`px-5 py-2 rounded-xl text-sm md:text-lg font-black transition-all ${viewMode === 'circle' && baguaType === 'later' ? 'bg-indigo-900 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
                   >
                     {t.later}
                   </button>
                   <button 
                     onClick={() => setViewMode('grid')} 
-                    className={`px-5 py-2 rounded-xl text-sm md:text-lg font-black transition-all ${viewMode === 'grid' ? 'bg-indigo-900 text-white shadow-md' : 'text-gray-500'}`}
+                    className={`px-5 py-2 rounded-xl text-sm md:text-lg font-black transition-all ${viewMode === 'grid' ? 'bg-indigo-900 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
                   >
                     {t.square}
                   </button>
                 </div>
               )}
 
-              {/* Hexagram View Mode Switcher */}
               {mode === 'Hexagram' && (
                 <div className="flex bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
                   {(['circle', 'grid', 'sequence'] as const).map(m => (
-                    <button key={m} onClick={() => setViewMode(m)} className={`px-5 py-2 rounded-xl text-sm md:text-lg font-black transition-all ${viewMode === m ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500'}`}>
+                    <button key={m} onClick={() => setViewMode(m)} className={`px-5 py-2 rounded-xl text-sm md:text-lg font-black transition-all ${viewMode === m ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}>
                       {t[m]}
                     </button>
                   ))}
@@ -444,17 +445,17 @@ const App: React.FC = () => {
                   lang={lang}
                 />
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-3xl">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-4xl">
                   {TRIGRAMS.map(trig => {
                     const p = placedTrigrams[trig.id];
                     return (
-                      <div key={trig.id} className="bg-white rounded-3xl p-6 shadow-md border-4 border-transparent">
-                         <div onDrop={(e) => handleDrop(e, trig.id, 'symbol')} onDragOver={(e)=>e.preventDefault()} onClick={() => handleSlotClick(trig.id, 'symbol')} className="h-24 flex items-center justify-center border-dashed border-2 rounded-2xl mb-4 bg-indigo-50/10">
-                           {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={64} /> : <span className="text-indigo-400 text-xs font-black">{t.symbol}</span>}
+                      <div key={trig.id} className="bg-white rounded-3xl p-6 shadow-md border-4 border-transparent hover:border-indigo-50 transition-colors">
+                         <div onDrop={(e) => handleDrop(e, trig.id, 'symbol')} onDragOver={(e)=>e.preventDefault()} onClick={() => handleSlotClick(trig.id, 'symbol')} className="h-28 flex items-center justify-center border-dashed border-2 rounded-2xl mb-4 bg-indigo-50/10">
+                           {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={72} /> : <span className="text-indigo-400 text-sm font-black">{t.symbol}</span>}
                          </div>
                          <div className="space-y-3">
                            {['name', 'nature', 'solarTerm'].map(type => (
-                             <div key={type} onClick={() => handleSlotClick(trig.id, type)} onDrop={(e) => handleDrop(e, trig.id, type)} onDragOver={(e)=>e.preventDefault()} className={`h-12 border-2 rounded-xl flex items-center justify-center text-sm font-black transition-all ${p[type] ? (type === 'name' ? 'bg-red-50 text-red-900 border-red-200' : type === 'nature' ? 'bg-blue-50 text-blue-900 border-blue-200' : 'bg-green-50 text-green-900 border-green-200') : 'border-dashed border-gray-100 text-gray-300'}`}>
+                             <div key={type} onClick={() => handleSlotClick(trig.id, type)} onDrop={(e) => handleDrop(e, trig.id, type)} onDragOver={(e)=>e.preventDefault()} className={`h-14 border-2 rounded-xl flex items-center justify-center text-sm md:text-base font-black transition-all ${p[type] ? (type === 'name' ? 'bg-red-50 text-red-900 border-red-200' : type === 'nature' ? 'bg-blue-50 text-blue-900 border-blue-200' : 'bg-green-50 text-green-900 border-green-200') : 'border-dashed border-gray-100 text-gray-400 hover:bg-gray-50'}`}>
                                {p[type]?.content || t[type]}
                              </div>
                            ))}
@@ -467,7 +468,6 @@ const App: React.FC = () => {
             ) : mode === 'Hexagram' ? (
               <HexagramBoard view={viewMode} placedNames={placedHexagrams} isFinished={gameState.isFinished} onDrop={handleDrop} onSlotClick={handleSlotClick} onDragStartFromSlot={(e, id, type, item) => { setSourceSlot({targetId:id, type}); setActivePoolItem(item); e.dataTransfer.setData('item', JSON.stringify(item)); }} onHexClick={(hex) => setActiveModalHex(hex)} lang={lang} />
             ) : (
-              /* Idiom Mode with Double Click interaction */
               <div className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4">
                 {ICHING_IDIOMS.map((idiom, idx) => {
                   const hex = KING_WEN_HEXAGRAMS.find(h => h.id === idiom.hexId);
@@ -478,11 +478,11 @@ const App: React.FC = () => {
                       className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-3 cursor-pointer hover:shadow-xl hover:scale-105 transition-all group select-none"
                     >
                       <div className="pointer-events-none opacity-20 group-hover:opacity-100 transition-opacity">
-                         {hex && <HexagramIcon lines={hex.lines} size={24} color="#6366f1" />}
+                         {hex && <HexagramIcon lines={hex.lines} size={28} color="#6366f1" />}
                       </div>
-                      <span className="text-xl font-black text-gray-800 tracking-wider group-hover:text-indigo-600">{lang === 'zh' ? idiom.text : idiom.textEn}</span>
-                      <span className="text-[10px] text-gray-400 font-bold group-hover:text-gray-600">《{lang === 'zh' ? hex?.name : hex?.nameEn}》</span>
-                      <div className="text-[8px] text-gray-300 font-bold mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-xl md:text-2xl font-black text-gray-800 tracking-wider group-hover:text-indigo-600">{lang === 'zh' ? idiom.text : idiom.textEn}</span>
+                      <span className="text-xs text-gray-400 font-bold group-hover:text-gray-600">《{lang === 'zh' ? hex?.name : hex?.nameEn}》</span>
+                      <div className="text-[10px] text-gray-300 font-bold mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                          {lang === 'zh' ? '双击领悟' : 'Double click to learn'}
                       </div>
                     </div>
@@ -495,10 +495,10 @@ const App: React.FC = () => {
           {(gameState.isFinished || selectedInfo) && (
             <div className="mt-12 bg-white rounded-[3rem] p-8 md:p-12 shadow-2xl border border-gray-100 max-w-4xl w-full">
               <h3 className="text-2xl md:text-4xl font-black text-gray-900 mb-6">{selectedInfo ? t.wisdom : `${t.score}: ${gameState.score}`}</h3>
-              <div className="text-gray-800 italic leading-relaxed whitespace-pre-line bg-[#fdfcf7] p-8 rounded-3xl text-base md:text-xl shadow-inner">
+              <div className="text-gray-800 italic leading-relaxed whitespace-pre-line bg-[#fdfcf7] p-8 rounded-3xl text-lg md:text-2xl shadow-inner">
                 {selectedInfo || gameState.feedback}
               </div>
-              <button onClick={() => { setSelectedInfo(null); setGameState(prev => ({...prev, isFinished: false})) }} className="mt-8 px-12 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all">{t.realize}</button>
+              <button onClick={() => { setSelectedInfo(null); setGameState(prev => ({...prev, isFinished: false})) }} className="mt-8 px-12 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-all">{t.realize}</button>
             </div>
           )}
         </main>
@@ -515,7 +515,7 @@ const App: React.FC = () => {
                   if (items.length === 0) return null;
                   return (
                     <div key={type} className="space-y-3">
-                      <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">{t[type]}</h3>
+                      <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest pl-1">{t[type]}</h3>
                       <div className="flex flex-wrap gap-2.5">
                         {items.map(item => (
                           <div 
@@ -523,11 +523,11 @@ const App: React.FC = () => {
                             draggable 
                             onDragStart={(e) => { setActivePoolItem(item); e.dataTransfer.setData('item', JSON.stringify(item)); }} 
                             onClick={() => setActivePoolItem(activePoolItem?.id === item.id ? null : item)} 
-                            className={`px-3.5 py-1.5 rounded-xl text-sm font-black border-2 cursor-grab transition-all select-none ${activePoolItem?.id === item.id ? 'bg-indigo-600 text-white scale-110 shadow-lg' : 'bg-white border-gray-100'} ${item.type === 'name' ? 'bg-red-50 text-red-900 border-red-100' : item.type === 'nature' ? 'bg-blue-50 text-blue-900 border-blue-100' : 'bg-green-50 text-green-900 border-green-100'}`}
+                            className={`px-4 py-2 rounded-xl text-base font-black border-2 cursor-grab transition-all select-none ${activePoolItem?.id === item.id ? 'bg-indigo-600 text-white scale-110 shadow-lg' : 'bg-white border-gray-100'} ${item.type === 'name' ? 'bg-red-50 text-red-900 border-red-100' : item.type === 'nature' ? 'bg-blue-50 text-blue-900 border-blue-100' : 'bg-green-50 text-green-900 border-green-100'}`}
                           >
                              {item.type === 'symbol' ? (
-                               <div className="pointer-events-none scale-75 -my-2">
-                                 <TrigramIcon lines={TRIGRAMS.find(trig => trig.id === item.content)?.lines || []} size={40} color={activePoolItem?.id === item.id ? 'white' : 'currentColor'} />
+                               <div className="pointer-events-none scale-75 -my-1">
+                                 <TrigramIcon lines={TRIGRAMS.find(trig => trig.id === item.content)?.lines || []} size={44} color={activePoolItem?.id === item.id ? 'white' : 'currentColor'} />
                                </div>
                              ) : item.content}
                           </div>
@@ -539,22 +539,22 @@ const App: React.FC = () => {
               </div>
 
               <div className="mt-10 pt-8 border-t space-y-4">
-                <button onClick={checkResults} disabled={gameState.isFinished || isLoading} className="w-full py-5 bg-gray-900 text-white rounded-3xl font-black text-xl shadow-2xl active:scale-95 transition-all disabled:opacity-20">{t.submit}</button>
-                <div className="grid grid-cols-2 gap-3">
-                  <button onClick={autoComplete} className="py-3 bg-indigo-50 text-indigo-700 rounded-2xl text-xs font-black border border-indigo-100 hover:bg-indigo-100 transition-colors">{t.auto}</button>
-                  <button onClick={initGame} className="py-3 bg-gray-50 text-gray-600 rounded-2xl text-xs font-black border border-gray-100 hover:bg-gray-100 transition-colors">{t.reset}</button>
+                <button onClick={checkResults} disabled={gameState.isFinished || isLoading} className="w-full py-5 bg-gray-900 text-white rounded-3xl font-black text-xl shadow-2xl active:scale-95 transition-all disabled:opacity-20 hover:bg-black">{t.submit}</button>
+                <div className="grid grid-cols-2 gap-4">
+                  <button onClick={autoComplete} className="py-3.5 bg-indigo-50 text-indigo-700 rounded-2xl text-sm font-black border border-indigo-100 hover:bg-indigo-100 transition-colors">{t.auto}</button>
+                  <button onClick={initGame} className="py-3.5 bg-gray-50 text-gray-600 rounded-2xl text-sm font-black border border-gray-100 hover:bg-gray-100 transition-colors">{t.reset}</button>
                 </div>
               </div>
             </section>
           ) : (
             <section className="bg-indigo-900 p-8 rounded-[2.5rem] shadow-2xl text-white">
               <h2 className="text-2xl font-black mb-4">{t.poolTitle}</h2>
-              <p className="text-indigo-200 text-sm leading-relaxed mb-6">
+              <p className="text-indigo-100 text-base leading-relaxed mb-6">
                 {t.poolDesc}
               </p>
-              <div className="p-4 bg-white/10 rounded-2xl border border-white/10">
-                 <div className="text-[10px] uppercase font-bold text-indigo-300 mb-2">{t.poolStat}</div>
-                 <div className="w-full bg-indigo-950 h-2 rounded-full overflow-hidden">
+              <div className="p-5 bg-white/10 rounded-2xl border border-white/10">
+                 <div className="text-xs uppercase font-bold text-indigo-300 mb-3">{t.poolStat}</div>
+                 <div className="w-full bg-indigo-950 h-2.5 rounded-full overflow-hidden">
                     <div className="bg-indigo-400 h-full w-[100%]"></div>
                  </div>
               </div>
@@ -563,33 +563,33 @@ const App: React.FC = () => {
 
           <section className="bg-white p-8 rounded-[2.5rem] border-2 shadow-lg">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black text-gray-800">{t.records}</h3>
-              <div className="flex gap-2">
+              <h3 className="text-2xl font-black text-gray-800">{t.records}</h3>
+              <div className="flex gap-3">
                 {records.length > 0 && (
                   <button 
                     onClick={downloadRecords} 
                     title={t.download}
-                    className="p-2 hover:bg-indigo-50 text-indigo-600 rounded-lg transition-colors text-lg"
+                    className="p-2.5 hover:bg-indigo-50 text-indigo-600 rounded-xl transition-colors text-xl"
                   >
                     📥
                   </button>
                 )}
-                <button onClick={clearRecords} title="Clear history" className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors text-lg">🗑️</button>
+                <button onClick={clearRecords} title="Clear history" className="p-2.5 hover:bg-red-50 text-red-500 rounded-xl transition-colors text-xl">🗑️</button>
               </div>
             </div>
             <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
               {records.length === 0 ? (
-                <div className="text-center py-10 text-gray-400 italic">{t.noRecords}</div>
+                <div className="text-center py-10 text-gray-400 italic text-sm">{t.noRecords}</div>
               ) : (
                 records.map(record => (
-                  <div key={record.id} className="p-4 bg-[#fdfcf7] border rounded-2xl shadow-sm">
-                    <div className="flex justify-between text-[10px] text-gray-400 mb-1">
-                      <span>{record.mode}</span>
+                  <div key={record.id} className="p-5 bg-[#fdfcf7] border rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex justify-between text-xs text-gray-400 mb-2">
+                      <span className="font-bold">{record.mode}</span>
                       <span>{record.timestamp}</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xl font-black ${record.score >= 80 ? 'text-green-600' : 'text-gray-800'}`}>{record.score}</span>
-                      <p className="text-xs text-gray-600 line-clamp-1 flex-1">{record.feedback}</p>
+                    <div className="flex items-center gap-4">
+                      <span className={`text-2xl font-black ${record.score >= 80 ? 'text-green-600' : 'text-gray-800'}`}>{record.score}</span>
+                      <p className="text-sm text-gray-600 line-clamp-2 flex-1 font-medium">{record.feedback}</p>
                     </div>
                   </div>
                 ))
@@ -607,7 +607,7 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white p-12 rounded-[3rem] shadow-2xl flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="font-black text-gray-800 tracking-widest">{lang === 'zh' ? '推演中...' : 'Thinking...'}</p>
+            <p className="font-black text-xl text-gray-800 tracking-widest">{lang === 'zh' ? '推演中...' : 'Thinking...'}</p>
           </div>
         </div>
       )}
