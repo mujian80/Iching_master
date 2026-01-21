@@ -29,7 +29,7 @@ export const HexagramBoard: React.FC<HexagramBoardProps> = ({
 
   if (view === 'grid' || view === 'sequence') {
     return (
-      <div className={`grid grid-cols-5 md:grid-cols-8 gap-3 md:gap-4 p-5 bg-white/60 rounded-[2.5rem] shadow-inner border border-gray-100 mx-auto w-full max-w-4xl`}>
+      <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-6 p-4 md:p-8 bg-white/70 rounded-3xl shadow-inner border border-gray-100 mx-auto w-full max-w-5xl">
         {activeHexList.map((hex, idx) => {
           const item = placedNames[hex.id];
           const isCorrect = isFinished && item?.content === (lang === 'zh' ? hex.name : hex.nameEn);
@@ -40,16 +40,13 @@ export const HexagramBoard: React.FC<HexagramBoardProps> = ({
               onDrop={(e) => onDrop(e, hex.id, 'hexName')}
               onDragOver={(e) => e.preventDefault()}
               onDoubleClick={(e) => { e.stopPropagation(); onHexClick?.(hex); }}
-              className={`relative flex flex-col items-center p-2.5 rounded-2xl border-2 transition-all cursor-pointer group select-none ${isFinished ? (isCorrect ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300') : 'bg-white border-transparent hover:border-indigo-100 hover:shadow-md'}`}
+              className={`relative flex flex-col items-center p-1.5 md:p-4 rounded-xl md:rounded-3xl border-2 md:border-4 transition-all cursor-pointer group select-none ${isFinished ? (isCorrect ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300') : 'bg-white border-transparent hover:border-indigo-100 hover:shadow-xl'}`}
             >
-              {/* Position hint */}
-              <div className="absolute top-1 left-1.5 text-[10px] md:text-xs text-gray-300 font-bold group-hover:text-indigo-300">
-                {idx + 1}
+              <div className="absolute top-1 left-1.5 text-[8px] md:text-xs text-gray-300 font-black">{idx + 1}</div>
+              <div className="mb-1 md:mb-3 pointer-events-none mt-1">
+                <HexagramIcon lines={hex.lines} size={window.innerWidth < 768 ? 24 : 42} color="#1f2937" />
               </div>
-              <div className="mb-2 pointer-events-none mt-2">
-                <HexagramIcon lines={hex.lines} size={32} color="#374151" />
-              </div>
-              <div className={`w-full text-xs md:text-sm min-h-[1.5rem] py-1 flex items-center justify-center rounded-lg transition-all truncate font-black ${item ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-300 italic border border-dashed border-gray-100'}`}>
+              <div className={`w-full text-[10px] md:text-base min-h-[1.5rem] md:min-h-[2.5rem] py-1 flex items-center justify-center rounded-lg transition-all truncate font-black ${item ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-200 italic border border-dashed border-gray-50'}`}>
                 {item?.content || ''}
               </div>
             </div>
@@ -62,8 +59,8 @@ export const HexagramBoard: React.FC<HexagramBoardProps> = ({
   const circularSequence = [...Array.from({ length: 32 }, (_, i) => 63 - i), ...Array.from({ length: 32 }, (_, i) => i)];
 
   return (
-    <div className="relative w-[95vmin] h-[95vmin] max-w-[850px] max-h-[850px] mx-auto flex items-center justify-center select-none bg-white/30 rounded-full">
-      <div className="absolute w-[20%] h-[20%] rounded-full shadow-2xl z-10 flex items-center justify-center bg-white border-4 border-gray-800 transition-transform duration-1000 hover:rotate-180">
+    <div className="relative w-[90vmin] h-[90vmin] max-w-[850px] max-h-[850px] mx-auto flex items-center justify-center select-none bg-white/40 rounded-full border-[6px] md:border-[12px] border-white/50 shadow-2xl">
+      <div className="absolute w-[22%] h-[22%] rounded-full shadow-2xl z-20 bg-white border-2 md:border-4 border-gray-900 transition-transform duration-1000 hover:rotate-180 cursor-pointer">
          <svg viewBox="0 0 100 100" className="w-full h-full scale-110">
             <circle cx="50" cy="50" r="50" fill="white" />
             <path d="M 50,0 A 50,50 0 0 1 50,100 A 25,25 0 0 1 50,50 A 25,25 0 0 0 50,0" fill="black" />
@@ -84,24 +81,31 @@ export const HexagramBoard: React.FC<HexagramBoardProps> = ({
           <div 
             key={hexId}
             style={{ left: `${left}%`, top: `${top}%`, transform: `translate(-50%, -50%) rotate(${angle + 90}deg)` }}
-            className="absolute flex flex-col items-center gap-1 group"
+            onDrop={(e) => onDrop(e, hexId, 'hexName')}
+            onDragOver={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSlotClick(hexId, 'hexName');
+            }}
+            // Increased padding/hit area for mobile
+            className={`absolute flex flex-col items-center group z-10 p-2 md:p-3 rounded-full cursor-pointer transition-all ${item ? 'scale-110' : 'hover:bg-indigo-50/50'}`}
           >
             <div 
-              onClick={() => onSlotClick(hexId, 'hexName')} 
               onDoubleClick={(e) => { e.stopPropagation(); onHexClick?.(hex); }} 
-              className="cursor-pointer hover:scale-125 transition-transform"
+              className="transition-transform group-hover:scale-150"
             >
-               <HexagramIcon lines={hex.lines} size={24} color="#374151" />
+               <HexagramIcon lines={hex.lines} size={window.innerWidth < 768 ? 16 : 28} color="#1f2937" />
             </div>
             {item ? (
-               <div className="text-[8px] md:text-[10px] px-1.5 py-0.5 rounded-md bg-indigo-600 text-white font-black whitespace-nowrap shadow-md">
+               <div className="text-[7px] md:text-sm px-2 py-0.5 rounded-md bg-indigo-700 text-white font-black whitespace-nowrap shadow-xl">
                  {item.content}
                </div>
             ) : (
-               <div className="text-[6px] text-gray-200 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                 {step + 1}
-               </div>
+               <div className="w-2 h-2 md:w-4 md:h-4 rounded-full border-2 border-indigo-200 bg-indigo-50 animate-pulse group-hover:bg-indigo-400 group-hover:border-indigo-500 transition-colors"></div>
             )}
+            <div className="absolute -top-4 text-[7px] text-gray-400 font-black opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+               #{step + 1}
+            </div>
           </div>
         );
       })}

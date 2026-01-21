@@ -27,11 +27,10 @@ export const BaguaCircle: React.FC<BaguaCircleProps> = ({
 }) => {
   const posMap = type === 'early' ? EARLY_HEAVEN_POS : LATER_HEAVEN_POS;
   const tStrings = TRANSLATIONS[lang];
-  const solarTermsList = lang === 'zh' ? POSITIONAL_SOLAR_TERMS : POSITIONAL_SOLAR_TERMS_EN;
 
   return (
-    <div className="relative w-[90vmin] h-[90vmin] max-w-[650px] max-h-[650px] bg-white rounded-full border-4 border-gray-100 shadow-[inset_0_4px_30px_rgba(0,0,0,0.05)] flex items-center justify-center p-4">
-      <div className="absolute w-[22%] h-[22%] rounded-full shadow-2xl z-10 overflow-hidden bg-white border-2 border-gray-800 transition-transform duration-1000 hover:rotate-180">
+    <div className="relative w-[85vmin] h-[85vmin] max-w-[700px] max-h-[700px] bg-white rounded-full border-[8px] md:border-[16px] border-gray-50 shadow-2xl flex items-center justify-center p-4 md:p-8">
+      <div className="absolute w-[24%] h-[24%] rounded-full shadow-2xl z-20 bg-white border-2 md:border-4 border-gray-900 transition-transform duration-1000 hover:rotate-180 cursor-pointer">
          <svg viewBox="0 0 100 100" className="w-full h-full scale-105">
             <circle cx="50" cy="50" r="50" fill="white" />
             <path d="M 50,0 A 50,50 0 0 1 50,100 A 25,25 0 0 1 50,50 A 25,25 0 0 0 50,0" fill="black" />
@@ -46,7 +45,6 @@ export const BaguaCircle: React.FC<BaguaCircleProps> = ({
         const radius = 38; 
         const left = 50 + radius * Math.cos((angle * Math.PI) / 180);
         const top = 50 + radius * Math.sin((angle * Math.PI) / 180);
-
         const p = placedItems[trig.id] || {};
         const trigName = lang === 'zh' ? trig.name : trig.nameEn;
 
@@ -54,7 +52,7 @@ export const BaguaCircle: React.FC<BaguaCircleProps> = ({
           <div 
             key={trig.id}
             style={{ left: `${left}%`, top: `${top}%`, transform: `translate(-50%, -50%) rotate(${angle + 90}deg)` }}
-            className="absolute w-[18%] max-w-[130px] flex flex-col items-center gap-2"
+            className="absolute w-[20%] max-w-[150px] flex flex-col items-center gap-1 md:gap-3 z-10"
           >
             <div 
               draggable={!!p.symbol && !isFinished}
@@ -62,19 +60,19 @@ export const BaguaCircle: React.FC<BaguaCircleProps> = ({
               onClick={() => p.symbol ? onTrigramClick(trigName) : onSlotClick(trig.id, 'symbol')}
               onDrop={(e) => onDrop(e, trig.id, 'symbol')}
               onDragOver={(e) => e.preventDefault()}
-              className={`cursor-pointer w-full aspect-[4/3] flex items-center justify-center rounded-2xl border-2 transition-all shadow-sm ${p.symbol ? 'border-transparent bg-white' : 'border-dashed border-indigo-200 bg-indigo-50/20 hover:bg-indigo-50/40'}`}
+              className={`cursor-pointer w-full aspect-square flex items-center justify-center rounded-xl md:rounded-3xl border-2 md:border-4 transition-all shadow-md ${p.symbol ? 'border-indigo-100 bg-white scale-110' : 'border-dashed border-indigo-200 bg-indigo-50/20 hover:bg-indigo-50/40 animate-pulse'}`}
             >
-              {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={42} color="#1f2937" /> : <span className="text-xs font-black text-indigo-400">{tStrings.symbol}</span>}
+              {p.symbol ? <TrigramIcon lines={TRIGRAMS.find(it => it.id === p.symbol?.content)?.lines || []} size={window.innerWidth < 768 ? 40 : 64} color="#1f2937" /> : <span className="text-[10px] md:text-sm font-black text-indigo-400">{tStrings.symbol}</span>}
             </div>
 
-            <div className="w-full space-y-1.5">
+            <div className="w-full space-y-1 md:space-y-2">
               {['name', 'nature', 'solarTerm'].map(type => (
                 <div 
                   key={type}
                   onClick={() => onSlotClick(trig.id, type)}
                   onDrop={(e) => onDrop(e, trig.id, type)}
                   onDragOver={(e) => e.preventDefault()}
-                  className={`h-[4.5vmin] max-h-[34px] border-2 rounded-xl flex items-center justify-center text-[10px] md:text-xs font-black transition-all ${p[type] ? 'bg-indigo-50 text-indigo-900 border-indigo-200 shadow-sm' : 'border-dashed border-gray-100 text-gray-300 hover:bg-gray-50'}`}
+                  className={`h-5 md:h-11 border rounded-lg md:rounded-2xl flex items-center justify-center text-[8px] md:text-base font-black transition-all ${p[type] ? 'bg-indigo-50 text-indigo-900 border-indigo-200' : 'border-dashed border-gray-100 text-gray-300'}`}
                 >
                   {p[type]?.content || tStrings[type]}
                 </div>

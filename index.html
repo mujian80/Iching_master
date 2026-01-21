@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>易经大师 - 互动学习与拼图</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
@@ -11,6 +11,11 @@
         body {
             font-family: 'Noto Serif SC', serif;
             background-color: #fcfaf2;
+            height: 100dvh;
+            overflow: hidden;
+        }
+        #root {
+            height: 100%;
         }
         .yin-yang-gradient {
             background: linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 100%);
@@ -27,6 +32,21 @@
         }
         .animate-ripple {
           animation: ripple-effect 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #cbd5e1;
         }
     </style>
 <script type="importmap">
