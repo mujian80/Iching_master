@@ -14,6 +14,7 @@ import { getGeminiFeedback, getTrigramWisdom } from './services/geminiService';
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showAuth, setShowAuth] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [lang, setLang] = useState<Language>('zh');
   
   const [mode, setMode] = useState<'Bagua' | 'Hexagram' | 'Idiom'>('Bagua');
@@ -102,7 +103,6 @@ const App: React.FC = () => {
       : `I Ching Master - Practice Records Report\nGenerated at: ${new Date().toLocaleString()}\nUser: ${currentUser?.username || 'Guest'}\n\n`;
     records.forEach((r, idx) => {
       content += `--------------------------------------------------\n`;
-      content += `${lang === 'zh' ? '记录' : 'Record'} #${idx + 1}\n`;
       content += `${lang === 'zh' ? '记录' : 'Record'} #${idx + 1}\n`;
       content += `${lang === 'zh' ? '模式' : 'Mode'}: ${r.mode}\n`;
       content += `${lang === 'zh' ? '时间' : 'Time'}: ${r.timestamp}\n`;
@@ -278,9 +278,17 @@ const App: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-[#fcfaf2] overflow-hidden">
       <header className="shrink-0 w-full bg-white/90 backdrop-blur-xl border-b border-gray-200 px-4 py-3 md:px-12 md:py-6 flex flex-col gap-3 md:flex-row items-center justify-between shadow-sm z-50">
-        <div className="flex items-center gap-3 md:gap-5 self-start md:self-auto">
-           <span className="text-3xl md:text-5xl">☯</span>
-           <h1 className="text-xl md:text-3xl lg:text-5xl font-black text-gray-900 tracking-tighter">{t.title}</h1>
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <div className="flex items-center gap-2 md:gap-5">
+             <span className="text-2xl md:text-5xl">☯</span>
+             <h1 className="text-lg md:text-3xl lg:text-5xl font-black text-gray-900 tracking-tighter">{t.title}</h1>
+          </div>
+          <div className="flex items-center gap-2 lg:hidden">
+            <button onClick={toggleLang} className="px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-black text-[10px] uppercase border border-indigo-100">{lang === 'zh' ? 'EN' : '中文'}</button>
+            {currentUser ? (
+              <button onClick={handleLogout} className="text-red-500 text-[10px] font-black">退出</button>
+            ) : <button onClick={() => setShowAuth(true)} className="px-2 py-1 rounded-lg bg-gray-900 text-white font-black text-[10px]">登录</button>}
+          </div>
         </div>
         
         <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4">
@@ -289,7 +297,7 @@ const App: React.FC = () => {
                <button 
                  key={m} 
                  onClick={() => { setMode(m); setActivePoolItem(null); setSourceSlot(null); }} 
-                 className={`px-3 md:px-8 py-1.5 md:py-2.5 rounded-full text-sm md:text-xl font-black transition-all ${mode === m ? 'bg-gray-800 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600'}`}
+                 className={`px-3 md:px-8 py-1.5 md:py-2.5 rounded-full text-xs md:text-xl font-black transition-all ${mode === m ? 'bg-gray-800 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600'}`}
                >
                  {t[m.toLowerCase()]}
                </button>
@@ -301,15 +309,15 @@ const App: React.FC = () => {
               {mode === 'Bagua' && (
                 <div className="flex bg-white p-1 rounded-xl border border-gray-100 shadow-sm">
                   {(['early', 'later'] as const).map(bt => (
-                    <button key={bt} onClick={() => {setBaguaType(bt); setViewMode('circle');}} className={`px-3 py-1 rounded-lg text-xs md:text-base font-black transition-all ${viewMode === 'circle' && baguaType === bt ? 'bg-indigo-900 text-white' : 'text-gray-500'}`}>{t[bt]}</button>
+                    <button key={bt} onClick={() => {setBaguaType(bt); setViewMode('circle');}} className={`px-2 py-1 rounded-lg text-[10px] md:text-base font-black transition-all ${viewMode === 'circle' && baguaType === bt ? 'bg-indigo-900 text-white' : 'text-gray-500'}`}>{t[bt]}</button>
                   ))}
-                  <button onClick={() => setViewMode('grid')} className={`px-3 py-1 rounded-lg text-xs md:text-base font-black transition-all ${viewMode === 'grid' ? 'bg-indigo-900 text-white' : 'text-gray-500'}`}>{t.square}</button>
+                  <button onClick={() => setViewMode('grid')} className={`px-2 py-1 rounded-lg text-[10px] md:text-base font-black transition-all ${viewMode === 'grid' ? 'bg-indigo-900 text-white' : 'text-gray-500'}`}>{t.square}</button>
                 </div>
               )}
               {mode === 'Hexagram' && (
                 <div className="flex bg-white p-1 rounded-xl border border-gray-100 shadow-sm">
                   {(['circle', 'grid', 'sequence'] as const).map(m => (
-                    <button key={m} onClick={() => setViewMode(m)} className={`px-3 py-1 rounded-lg text-xs md:text-base font-black transition-all ${viewMode === m ? 'bg-indigo-600 text-white' : 'text-gray-500'}`}>{t[m]}</button>
+                    <button key={m} onClick={() => setViewMode(m)} className={`px-2 py-1 rounded-lg text-[10px] md:text-base font-black transition-all ${viewMode === m ? 'bg-indigo-600 text-white' : 'text-gray-500'}`}>{t[m]}</button>
                   ))}
                 </div>
               )}
@@ -339,6 +347,7 @@ const App: React.FC = () => {
             <div className="absolute top-4 right-4 z-40 flex flex-col gap-2">
               <button onClick={() => setZoom(z => Math.min(z + 0.1, 1.8))} className="w-10 h-10 md:w-14 md:h-14 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black cursor-pointer">＋</button>
               <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.4))} className="w-10 h-10 md:w-14 md:h-14 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black cursor-pointer">－</button>
+              <button onClick={() => setShowHistoryModal(true)} className="lg:hidden w-10 h-10 bg-white border border-gray-200 rounded-xl shadow-lg flex items-center justify-center text-xl font-black cursor-pointer">📜</button>
             </div>
           )}
 
@@ -478,6 +487,31 @@ const App: React.FC = () => {
             <button onClick={checkResults} disabled={gameState.isFinished || isLoading} className="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-black text-lg shadow-lg active:scale-95 disabled:opacity-30 cursor-pointer">{t.submit}</button>
             <button onClick={autoComplete} className="px-6 py-4 bg-indigo-50 text-indigo-700 rounded-2xl text-lg font-black cursor-pointer">{t.auto}</button>
             <button onClick={initGame} className="px-5 py-4 bg-gray-50 text-gray-600 rounded-2xl text-lg font-black cursor-pointer">🔄</button>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal for Mobile */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setShowHistoryModal(false)}>
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full max-h-[80vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+              <h3 className="text-xl font-black text-gray-800">{t.records}</h3>
+              <div className="flex gap-2">
+                <button onClick={downloadRecords} className="p-2 hover:bg-gray-200 rounded-lg">📥</button>
+                <button onClick={clearRecords} className="p-2 hover:bg-red-50 text-red-500 rounded-lg">🗑️</button>
+                <button onClick={() => setShowHistoryModal(false)} className="p-2 hover:bg-gray-200 rounded-lg ml-2">✕</button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {records.length === 0 ? <div className="text-center py-12 text-gray-400 italic">暂无记录</div>
+              : records.map(r => (
+                  <div key={r.id} className="p-4 bg-gray-50 rounded-2xl border text-sm shadow-sm">
+                    <div className="flex justify-between text-[10px] text-gray-400 mb-1"><span>{r.mode}</span><span>{r.timestamp}</span></div>
+                    <div className="flex items-center gap-3"><span className="font-black text-lg text-indigo-600">{r.score}</span><p className="text-gray-500 italic leading-snug">{r.feedback}</p></div>
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
       )}
