@@ -38,7 +38,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     nature: '物象',
     solarTerm: '节气',
     hexName: '卦名',
-    classic: '经典金句'
+    classic: '经典金句',
+    download: '下载记录'
   },
   en: {
     title: 'I Ching Master',
@@ -76,7 +77,8 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     nature: 'Nature',
     solarTerm: 'Term',
     hexName: 'Hex Name',
-    classic: 'Classic Wisdom'
+    classic: 'Classic Wisdom',
+    download: 'Download'
   }
 };
 

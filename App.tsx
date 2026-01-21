@@ -93,6 +93,33 @@ const App: React.FC = () => {
     }
   }, [lang, currentUser]);
 
+  const downloadRecords = useCallback(() => {
+    if (records.length === 0) return;
+    
+    let content = lang === 'zh' 
+      ? `易经大师 - 演算历程报告\n生成时间: ${new Date().toLocaleString()}\n用户: ${currentUser?.username || '游客'}\n\n` 
+      : `I Ching Master - Practice Records Report\nGenerated at: ${new Date().toLocaleString()}\nUser: ${currentUser?.username || 'Guest'}\n\n`;
+    
+    records.forEach((r, idx) => {
+      content += `--------------------------------------------------\n`;
+      content += lang === 'zh' ? `记录 #${idx + 1}\n` : `Record #${idx + 1}\n`;
+      content += lang === 'zh' ? `模式: ${r.mode}\n` : `Mode: ${r.mode}\n`;
+      content += lang === 'zh' ? `时间: ${r.timestamp}\n` : `Timestamp: ${r.timestamp}\n`;
+      content += lang === 'zh' ? `评分: ${r.score}\n` : `Score: ${r.score}\n`;
+      content += lang === 'zh' ? `感悟反馈:\n${r.feedback}\n\n` : `Insight Feedback:\n${r.feedback}\n\n`;
+    });
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = lang === 'zh' ? `易经演算历程_${new Date().toLocaleDateString()}.txt` : `IChing_Records_${new Date().toLocaleDateString()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [records, lang, currentUser]);
+
   const toggleLang = () => {
     const newLang = lang === 'zh' ? 'en' : 'zh';
     setLang(newLang);
@@ -538,7 +565,16 @@ const App: React.FC = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-black text-gray-800">{t.records}</h3>
               <div className="flex gap-2">
-                <button onClick={clearRecords} title="Clear history" className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors">🗑️</button>
+                {records.length > 0 && (
+                  <button 
+                    onClick={downloadRecords} 
+                    title={t.download}
+                    className="p-2 hover:bg-indigo-50 text-indigo-600 rounded-lg transition-colors text-lg"
+                  >
+                    📥
+                  </button>
+                )}
+                <button onClick={clearRecords} title="Clear history" className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors text-lg">🗑️</button>
               </div>
             </div>
             <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
